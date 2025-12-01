@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP DWA Northwind | Presentación</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-light: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #f8fafc;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --accent-light: #dbeafe;
+            --green: #059669;
+            --green-light: #d1fae5;
+            --purple: #7c3aed;
+            --purple-light: #ede9fe;
+            --cyan: #0891b2;
+            --cyan-light: #cffafe;
+            --orange: #d97706;
+            --orange-light: #fef3c7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+        }
+
+        .presentation {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px 80px;
+            overflow: hidden;
+        }
+
+        .slide.active { display: flex; }
+        .slide.dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .slide.light { background: var(--bg-light); }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0,0,0,0.6);
+            padding: 12px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .nav button:hover { background: rgba(255,255,255,0.2); }
+        .nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .nav .counter {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .nav .dashboard-links {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .nav .dashboard-links a {
+            background: var(--accent);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav .dashboard-links a:hover { background: #1d4ed8; }
+        .nav .dashboard-links a.dqm { background: var(--orange); }
+        .nav .dashboard-links a.dqm:hover { background: #b45309; }
+
+        /* Slide 1 - Cover */
+        .slide-cover {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .slide-cover .accent-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .slide-cover .eyebrow {
+            font-size: 14px;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .slide-cover h1 {
+            font-size: 56px;
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .slide-cover .subtitle {
+            font-size: 24px;
+            color: #94a3b8;
+            margin-bottom: 50px;
+        }
+
+        .slide-cover .divider {
+            width: 120px;
+            height: 4px;
+            background: var(--accent);
+            margin-bottom: 50px;
+        }
+
+        .slide-cover .tech-badges {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+
+        .slide-cover .tech-badge {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .slide-cover .tech-badge.pg { background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.4); color: #60a5fa; }
+        .slide-cover .tech-badge.sb { background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.4); color: #34d399; }
+        .slide-cover .tech-badge.rc { background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.4); color: #c084fc; }
+
+        .slide-cover .authors {
+            font-size: 18px;
+            color: #cbd5e1;
+        }
+
+        .slide-cover .year {
+            font-size: 15px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+
+        /* Content slides */
+        .slide-content {
+            flex-direction: column;
+        }
+
+        .slide-content .accent-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+        }
+
+        .slide-content.has-accent { padding-left: 100px; }
+
+        .slide-header {
+            margin-bottom: 30px;
+        }
+
+        .slide-header .etapa {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .slide-header h2 {
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .slide-header .underline {
+            width: 60px;
+            height: 4px;
+            background: var(--accent);
+            margin-top: 16px;
+        }
+
+        .slide-body {
+            flex: 1;
+            display: flex;
+            gap: 30px;
+        }
+
+        .slide-footer {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 20px;
+        }
+
+        /* Cards and boxes */
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card-accent {
+            border-left: 4px solid;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .kpi-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .kpi {
+            background: var(--bg-dark);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Flow diagram */
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 20px 0;
+        }
+
+        .flow-item {
+            padding: 16px 24px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .flow-item h4 { font-size: 16px; font-weight: 700; }
+        .flow-item p { font-size: 11px; margin-top: 4px; }
+
+        .flow-arrow {
+            width: 40px;
+            height: 2px;
+            background: #cbd5e1;
+        }
+
+        /* Steps */
+        .steps { display: flex; flex-direction: column; gap: 16px; }
+
+        .step {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+        .step-content p { font-size: 13px; color: var(--text-muted); }
+
+        /* Dashboard preview cards */
+        .dashboard-card {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .dashboard-card-icon.dp01 { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .dashboard-card-icon.dqm { background: linear-gradient(135deg, #d97706, #b45309); }
+
+        .dashboard-card h3 { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+        .dashboard-card .tagline { font-size: 12px; color: var(--text-muted); }
+
+        .dashboard-card-list {
+            flex: 1;
+            background: #fff;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .dashboard-card-list h5 {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+        }
+
+        .dashboard-card-list ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dashboard-card-list li {
+            font-size: 13px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dashboard-card-list li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dashboard-card.dp01 .dashboard-card-list li::before { background: var(--accent); }
+        .dashboard-card.dqm .dashboard-card-list li::before { background: var(--orange); }
+
+        .dashboard-card-footer {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .dashboard-card.dp01 .dashboard-card-footer { background: var(--accent-light); color: var(--accent); }
+        .dashboard-card.dqm .dashboard-card-footer { background: var(--orange-light); color: var(--orange); }
+
+        .dashboard-card .view-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .dashboard-card.dp01 .view-btn { background: var(--accent); }
+        .dashboard-card.dp01 .view-btn:hover { background: #1d4ed8; }
+        .dashboard-card.dqm .view-btn { background: var(--orange); }
+        .dashboard-card.dqm .view-btn:hover { background: #b45309; }
+
+        /* Utilities */
+        .text-accent { color: var(--accent); }
+        .text-green { color: var(--green); }
+        .text-purple { color: var(--purple); }
+        .text-cyan { color: var(--cyan); }
+        .text-orange { color: var(--orange); }
+        .bg-accent-light { background: var(--accent-light); }
+        .bg-green-light { background: var(--green-light); }
+        .bg-purple-light { background: var(--purple-light); }
+        .bg-cyan-light { background: var(--cyan-light); }
+        .bg-orange-light { background: var(--orange-light); }
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        
+        <!-- Slide 1: Cover -->
+        <div class="slide dark slide-cover active" data-slide="1">
+            <div class="accent-bar"></div>
+            <p class="eyebrow">Trabajo Práctico Final</p>
+            <h1>Data Warehouse Northwind</h1>
+            <p class="subtitle">Introducción a Data Warehousing</p>
+            <div class="divider"></div>
+            <div class="tech-badges">
+                <span class="tech-badge pg">PostgreSQL 17.6</span>
+                <span class="tech-badge sb">Supabase</span>
+                <span class="tech-badge rc">React</span>
+            </div>
+            <p class="authors">Gaspar González Wulfsohn  ·  Emilia Garmendia</p>
+            <p class="year">2025</p>
+        </div>
+
+        <!-- Slide 2: Resumen Ejecutivo -->
+        <div class="slide light slide-content" data-slide="2">
+            <div class="slide-header">
+                <h2>Resumen Ejecutivo</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="slide-body">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+                    <div class="card card-accent" style="border-color: var(--accent);">
+                        <p class="text-accent" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Objetivo</p>
+                        <p style="font-size: 15px; color: var(--text-dark); line-height: 1.6;">Construir un Data Warehouse completo sobre la base Northwind, aplicando metodología dimensional con SCD Type 2 y gestión integral de calidad de datos.</p>
+                    </div>
+                    <div class="card card-accent" style="border-color: var(--green);">
+                        <p class="text-green" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Alcance</p>
+                        <p style="font-size: 15px; color: var(--text-dark); line-height: 1.6;">11 tablas origen transformadas en modelo estrella con fact table de ventas, 9 dimensiones, metadata completa y dashboards interactivos en tiempo real.</p>
+                    </div>
+                    <div class="card card-accent" style="border-color: var(--purple);">
+                        <p class="text-purple" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Integración</p>
+                        <p style="font-size: 15px; color: var(--text-dark); line-height: 1.6;">Enriquecimiento con World-Data-2023 (25 países) para análisis de mercados internacionales con indicadores económicos.</p>
+                    </div>
+                </div>
+                <div style="width: 280px;">
+                    <div class="kpi-grid">
+                        <div class="kpi">
+                            <div class="kpi-value">25</div>
+                            <div class="kpi-label">Scripts SQL</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="kpi" style="background: var(--accent-light);">
+                                <div class="kpi-value text-accent">53</div>
+                                <div class="kpi-label" style="color: var(--text-muted);">Tablas</div>
+                            </div>
+                            <div class="kpi" style="background: var(--green-light);">
+                                <div class="kpi-value text-green">306</div>
+                                <div class="kpi-label" style="color: var(--text-muted);">Atributos</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="kpi" style="background: var(--purple-light);">
+                                <div class="kpi-value text-purple">7</div>
+                                <div class="kpi-label" style="color: var(--text-muted);">Capas</div>
+                            </div>
+                            <div class="kpi" style="background: var(--orange-light);">
+                                <div class="kpi-value text-orange">100%</div>
+                                <div class="kpi-label" style="color: var(--text-muted);">Calidad</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Introducción a Data Warehousing · 2025</div>
+        </div>
+
+        <!-- Slide 3: Arquitectura -->
+        <div class="slide light slide-content" data-slide="3">
+            <div class="slide-header">
+                <h2>Arquitectura del Data Warehouse</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="slide-body" style="flex-direction: column; gap: 30px;">
+                <div class="flow">
+                    <div class="flow-item" style="background: #faf5ff; border-color: #c084fc;">
+                        <h4 class="text-purple">CSV</h4>
+                        <p style="color: #a855f7;">Ingesta</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #fef3c7; border-color: #fbbf24;">
+                        <h4 class="text-orange">TXT</h4>
+                        <p style="color: #f59e0b;">11 tablas</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #dbeafe; border-color: #60a5fa;">
+                        <h4 class="text-accent">TMP</h4>
+                        <p style="color: #3b82f6;">Tipado</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #d1fae5; border-color: #34d399;">
+                        <h4 class="text-green">DWM</h4>
+                        <p style="color: #10b981;">SCD Type 2</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #fee2e2; border-color: #f87171;">
+                        <h4 style="color: #dc2626;">DWA</h4>
+                        <p style="color: #ef4444;">Dimensional</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #e0f2fe; border-color: #38bdf8;">
+                        <h4 class="text-cyan">DWE</h4>
+                        <p style="color: #0ea5e9;">Enrichment</p>
+                    </div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-item" style="background: #dcfce7; border-color: #4ade80;">
+                        <h4 style="color: #16a34a;">DP01</h4>
+                        <p style="color: #22c55e;">Producto</p>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                    <div class="card">
+                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">STAGING (TXT + TMP)</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">11 tablas raw (TEXT) + 11 tipadas con PKs. Validación de campos, perfilado y control de FKs.</p>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">MEMORY (DWM)</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">SCD Type 2 para Customers, Products, Employees, Countries. Historial con valid_from/to.</p>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">DIMENSIONAL (DWA)</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">1 fact table (ventas) + 9 dimensiones. Modelo estrella optimizado para análisis OLAP.</p>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">METADATA + CALIDAD</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">6 tablas MET (306 atributos) + 7 tablas DQM para control de procesos y trazabilidad.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Arquitectura de 7 capas sobre PostgreSQL 17.6 / Supabase</div>
+        </div>
+
+        <!-- Slide 4: Etapa 1 -->
+        <div class="slide light slide-content has-accent" data-slide="4">
+            <div class="accent-bar" style="background: var(--purple);"></div>
+            <div class="slide-header">
+                <p class="etapa text-purple">Etapa 1</p>
+                <h2>Adquisición de Datos</h2>
+            </div>
+            <div class="slide-body">
+                <div style="flex: 1;">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-num" style="background: var(--purple);">1</div>
+                            <div class="step-content">
+                                <h4>Análisis de CSVs</h4>
+                                <p>11 archivos, 3,311 filas, 84 campos</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: var(--purple);">2</div>
+                            <div class="step-content">
+                                <h4>Comparación con DER</h4>
+                                <p>Validación de estructura vs modelo Northwind</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: var(--purple);">3</div>
+                            <div class="step-content">
+                                <h4>Tablas TXT (raw)</h4>
+                                <p>Carga directa sin transformación</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: var(--purple);">4</div>
+                            <div class="step-content">
+                                <h4>Tablas TMP (tipadas)</h4>
+                                <p>Conversión de tipos + PKs definidas</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: var(--purple);">5</div>
+                            <div class="step-content">
+                                <h4>Perfilado y Validación</h4>
+                                <p>Nulos, outliers, FKs, integridad referencial</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 380px;">
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Tablas Procesadas</p>
+                    <div class="card" style="padding: 18px;">
+                        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px 0; color: var(--text-muted);">categories</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">8</td>
+                                <td style="padding: 8px 0 8px 20px; color: var(--text-muted);">orders</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">830</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px 0; color: var(--text-muted);">customers</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">91</td>
+                                <td style="padding: 8px 0 8px 20px; color: var(--text-muted);">order_details</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">2,155</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px 0; color: var(--text-muted);">employees</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">9</td>
+                                <td style="padding: 8px 0 8px 20px; color: var(--text-muted);">products</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">77</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px 0; color: var(--text-muted);">emp_territories</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">49</td>
+                                <td style="padding: 8px 0 8px 20px; color: var(--text-muted);">regions</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">4</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: var(--text-muted);">territories</td>
+                                <td style="padding: 8px 0; text-align: right;" class="mono">53</td>
+                                <td style="padding: 8px 0 8px 20px; font-weight: 600;">TOTAL</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 700;" class="mono text-purple">3,311</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="background: var(--purple-light); border-radius: 8px; padding: 14px 18px; margin-top: 16px;">
+                        <p style="font-size: 12px; color: var(--purple);"><strong>10 Scripts:</strong> SCR_001 a SCR_010 (Pasos 1 a 3h)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Etapa 1: Adquisición · 11 relaciones FK validadas</div>
+        </div>
+
+        <!-- Slide 5: Etapa 2 -->
+        <div class="slide light slide-content has-accent" data-slide="5">
+            <div class="accent-bar" style="background: var(--accent);"></div>
+            <div class="slide-header">
+                <p class="etapa text-accent">Etapa 2</p>
+                <h2>Ingeniería del Data Warehouse</h2>
+            </div>
+            <div class="slide-body">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+                    <div class="card" style="background: var(--accent-light);">
+                        <h4 class="text-accent" style="font-size: 14px; margin-bottom: 10px;">Metadata (MET)</h4>
+                        <p style="font-size: 13px; color: var(--text-dark); line-height: 1.5;">6 tablas con 306 atributos documentados: entidad, atributo, dominio, relacion, origen, mapeo</p>
+                    </div>
+                    <div class="card" style="background: var(--orange-light);">
+                        <h4 class="text-orange" style="font-size: 14px; margin-bottom: 10px;">Calidad (DQM)</h4>
+                        <p style="font-size: 13px; color: var(--text-dark); line-height: 1.5;">7 tablas de control: proceso_carga, carga_entidad, scd_tracking, estadistica, calidad_dim, reconciliacion, alerta</p>
+                    </div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+                    <div class="card" style="background: var(--green-light);">
+                        <h4 class="text-green" style="font-size: 14px; margin-bottom: 10px;">Modelo Dimensional</h4>
+                        <p style="font-size: 13px; color: var(--text-dark); margin-bottom: 14px;">Esquema estrella con 1 fact table central y 9 dimensiones conformadas</p>
+                        <div style="background: #fff; border-radius: 8px; padding: 14px; text-align: center;">
+                            <p style="font-size: 10px; color: var(--accent); margin-bottom: 8px;">Time · Customer · Employee</p>
+                            <div style="background: #fee2e2; display: inline-block; padding: 8px 20px; border-radius: 6px;">
+                                <p style="font-size: 12px; font-weight: 700; color: #dc2626;">FACT_VENTAS</p>
+                            </div>
+                            <p style="font-size: 10px; color: var(--accent); margin-top: 8px;">Product · Category · Shipper</p>
+                        </div>
+                    </div>
+                    <div class="card" style="background: var(--purple-light);">
+                        <h4 class="text-purple" style="font-size: 14px; margin-bottom: 10px;">Enriquecimiento (DWE)</h4>
+                        <p style="font-size: 13px; color: var(--text-dark); line-height: 1.5;">5 tablas: customer_stats, product_stats, employee_stats, monthly_sales, category_performance</p>
+                    </div>
+                </div>
+                <div style="width: 150px;">
+                    <div class="kpi-grid" style="gap: 10px;">
+                        <div class="kpi"><div class="kpi-value">1</div><div class="kpi-label">Fact Table</div></div>
+                        <div class="kpi"><div class="kpi-value">9</div><div class="kpi-label">Dimensiones</div></div>
+                        <div class="kpi"><div class="kpi-value">6</div><div class="kpi-label">Tablas MET</div></div>
+                        <div class="kpi"><div class="kpi-value">7</div><div class="kpi-label">Tablas DQM</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Scripts SCR_012 a SCR_017 · Pasos 5 a 8</div>
+        </div>
+
+        <!-- Slide 6: Etapa 3 -->
+        <div class="slide light slide-content has-accent" data-slide="6">
+            <div class="accent-bar" style="background: var(--cyan);"></div>
+            <div class="slide-header">
+                <p class="etapa text-cyan">Etapa 3</p>
+                <h2>Actualización Incremental</h2>
+            </div>
+            <div class="slide-body" style="flex-direction: column; gap: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="card" style="background: var(--green-light); border: 1px solid #a7f3d0;">
+                        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+                            <div style="width: 40px; height: 40px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;">9</div>
+                            <div>
+                                <h4 style="font-size: 16px; font-weight: 700;">World-Data-2023</h4>
+                                <p style="font-size: 11px; color: var(--text-muted);">Paso 9 - Integración externa</p>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;">Incorporación de indicadores económicos (población, GDP, esperanza de vida) vinculados a 25 países de Northwind.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-green" style="font-size: 20px; font-weight: 700;">25</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Países</p>
+                            </div>
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-green" style="font-size: 20px; font-weight: 700;">91</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Customers</p>
+                            </div>
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-green" style="font-size: 20px; font-weight: 700;">29</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Suppliers</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="background: var(--cyan-light); border: 1px solid #7dd3fc;">
+                        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+                            <div style="width: 40px; height: 40px; background: var(--cyan); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px;">10</div>
+                            <div>
+                                <h4 style="font-size: 16px; font-weight: 700;">Ingesta 2 - Novedades</h4>
+                                <p style="font-size: 11px; color: var(--text-muted);">Paso 10 - Carga incremental</p>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-dark); line-height: 1.5; margin-bottom: 14px;">Procesamiento de novedades con SCD Type 2 para customers y products. Detección, corrección y re-ingesta de errores.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-cyan" style="font-size: 20px; font-weight: 700;">1</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Customer</p>
+                            </div>
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-cyan" style="font-size: 20px; font-weight: 700;">2</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Products</p>
+                            </div>
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-cyan" style="font-size: 20px; font-weight: 700;">6</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Orders</p>
+                            </div>
+                            <div style="flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center;">
+                                <p class="mono text-cyan" style="font-size: 20px; font-weight: 700;">13</p>
+                                <p style="font-size: 10px; color: var(--text-muted);">Details</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="display: flex; align-items: center; gap: 30px;">
+                    <div style="flex: 1;">
+                        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">SCD Type 2 - Slowly Changing Dimensions</h4>
+                        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">Historial completo de cambios con campos valid_from, valid_to, is_current y version. Permite análisis temporal y trazabilidad de modificaciones.</p>
+                    </div>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 20px; text-align: center;">
+                        <p style="font-size: 11px; font-weight: 600; color: #dc2626; margin-bottom: 4px;">Error Detectado</p>
+                        <p class="mono" style="font-size: 12px; color: #7f1d1d;">customerid = XXXXX</p>
+                        <p style="font-size: 10px; color: #991b1b; margin-top: 6px;">Corregido y re-procesado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Scripts SCR_018 a SCR_024 · Pasos 9 a 10</div>
+        </div>
+
+        <!-- Slide 7: Dashboards -->
+        <div class="slide light slide-content has-accent" data-slide="7">
+            <div class="accent-bar" style="background: var(--green);"></div>
+            <div class="slide-header">
+                <p class="etapa text-green">Etapa 4</p>
+                <h2>Dashboards Interactivos</h2>
+            </div>
+            <div class="slide-body">
+                <div class="dashboard-card dp01">
+                    <div class="dashboard-card-header">
+                        <div class="dashboard-card-icon dp01">DP01</div>
+                        <div>
+                            <h3>Análisis de Mercados</h3>
+                            <p class="tagline">Producto de datos principal</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card-list">
+                        <h5>Visualizaciones</h5>
+                        <ul>
+                            <li>KPIs globales (revenue, órdenes, países)</li>
+                            <li>Segmentación de mercados (4 categorías)</li>
+                            <li>Distribución por segmento (doughnut)</li>
+                            <li>Evolución trimestral (líneas)</li>
+                            <li>Top 10 países por revenue</li>
+                        </ul>
+                    </div>
+                    <div class="dashboard-card-footer">Integra World-Data-2023 + Northwind</div>
+                    <a href="dashboard_dp01_react.html" class="view-btn" target="_blank">Ver Dashboard DP01</a>
+                </div>
+                <div class="dashboard-card dqm">
+                    <div class="dashboard-card-header">
+                        <div class="dashboard-card-icon dqm">DQM</div>
+                        <div>
+                            <h3>Control de Calidad</h3>
+                            <p class="tagline">Monitoreo del Data Warehouse</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card-list">
+                        <h5>Funcionalidades</h5>
+                        <ul>
+                            <li>Pipeline de 4 etapas con progreso</li>
+                            <li>Inventario de 25 scripts con filtros</li>
+                            <li>Log de ejecuciones y timeline</li>
+                            <li>Arquitectura de 7 capas</li>
+                            <li>Indicador de calidad 100%</li>
+                        </ul>
+                    </div>
+                    <div class="dashboard-card-footer">Conexión en tiempo real a Supabase</div>
+                    <a href="dashboard_dqm_react.html" class="view-btn" target="_blank">Ver Dashboard DQM</a>
+                </div>
+                <div style="width: 180px; display: flex; flex-direction: column; gap: 12px;">
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Stack Técnico</p>
+                    <div class="kpi"><p style="font-size: 14px; font-weight: 600; color: #60a5fa;">React 18</p><p class="kpi-label">Frontend</p></div>
+                    <div class="kpi"><p style="font-size: 14px; font-weight: 600; color: #34d399;">Supabase</p><p class="kpi-label">Backend/DB</p></div>
+                    <div class="kpi"><p style="font-size: 14px; font-weight: 600; color: #f472b6;">Chart.js</p><p class="kpi-label">Gráficos</p></div>
+                    <div class="kpi"><p style="font-size: 14px; font-weight: 600; color: #fbbf24;">IBM Plex</p><p class="kpi-label">Tipografía</p></div>
+                    <div style="background: #dcfce7; padding: 12px; border-radius: 10px; text-align: center;">
+                        <p style="font-size: 11px; color: #16a34a; font-weight: 600;">LIVE DATA</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Dashboards autocontenidos HTML + React</div>
+        </div>
+
+        <!-- Slide 8: Conclusiones -->
+        <div class="slide light slide-content" data-slide="8">
+            <div class="slide-header">
+                <h2>Conclusiones y Entregables</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="slide-body">
+                <div style="flex: 1;">
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">Logros Principales</p>
+                    <div class="steps" style="gap: 18px;">
+                        <div class="step">
+                            <div class="step-num" style="background: #dcfce7; color: #16a34a; font-size: 13px;">1</div>
+                            <p style="font-size: 14px; color: var(--text-dark); line-height: 1.5;">Implementación completa de arquitectura de 7 capas con 53 tablas y 306 atributos documentados.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: #dcfce7; color: #16a34a; font-size: 13px;">2</div>
+                            <p style="font-size: 14px; color: var(--text-dark); line-height: 1.5;">SCD Type 2 funcional con tracking de cambios para análisis temporal y trazabilidad.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: #dcfce7; color: #16a34a; font-size: 13px;">3</div>
+                            <p style="font-size: 14px; color: var(--text-dark); line-height: 1.5;">Integración exitosa de World-Data-2023 con 25 países vinculados a entidades Northwind.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: #dcfce7; color: #16a34a; font-size: 13px;">4</div>
+                            <p style="font-size: 14px; color: var(--text-dark); line-height: 1.5;">Dashboards interactivos con conexión en tiempo real y visualizaciones dinámicas.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background: #dcfce7; color: #16a34a; font-size: 13px;">5</div>
+                            <p style="font-size: 14px; color: var(--text-dark); line-height: 1.5;">Sistema DQM robusto con 100% de calidad de datos verificada.</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 340px;">
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">Entregables</p>
+                    <div class="card" style="padding: 20px; margin-bottom: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="background: var(--accent-light); padding: 8px 14px; border-radius: 6px;"><p style="font-size: 11px; font-weight: 600; color: var(--accent);">PDF</p></div>
+                                <p style="font-size: 13px; color: var(--text-dark);">Informe del proyecto</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="background: var(--orange-light); padding: 8px 14px; border-radius: 6px;"><p style="font-size: 11px; font-weight: 600; color: var(--orange);">SQL</p></div>
+                                <p style="font-size: 13px; color: var(--text-dark);">25 scripts numerados</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="background: var(--green-light); padding: 8px 14px; border-radius: 6px;"><p style="font-size: 11px; font-weight: 600; color: var(--green);">HTML</p></div>
+                                <p style="font-size: 13px; color: var(--text-dark);">2 dashboards React</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="background: var(--purple-light); padding: 8px 14px; border-radius: 6px;"><p style="font-size: 11px; font-weight: 600; color: var(--purple);">ZIP</p></div>
+                                <p style="font-size: 13px; color: var(--text-dark);">Paquete completo verificable</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="background: #fef2f2; padding: 8px 14px; border-radius: 6px;"><p style="font-size: 11px; font-weight: 600; color: #dc2626;">WEB</p></div>
+                                <p style="font-size: 13px; color: var(--text-dark);">Presentación + Dashboards en Vercel</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi" style="display: flex; gap: 20px; justify-content: center; padding: 20px;">
+                        <div style="text-align: center;">
+                            <p class="kpi-value">25</p>
+                            <p class="kpi-label">Scripts</p>
+                        </div>
+                        <div style="width: 1px; background: #475569;"></div>
+                        <div style="text-align: center;">
+                            <p class="kpi-value">53</p>
+                            <p class="kpi-label">Tablas</p>
+                        </div>
+                        <div style="width: 1px; background: #475569;"></div>
+                        <div style="text-align: center;">
+                            <p class="kpi-value" style="color: #34d399;">100%</p>
+                            <p class="kpi-label">Calidad</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">Gaspar González Wulfsohn · Emilia Garmendia · Introducción a Data Warehousing 2025</div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <button id="prev-btn" onclick="prevSlide()">&#8592;</button>
+        <span class="counter"><span id="current">1</span> / <span id="total">8</span></span>
+        <button id="next-btn" onclick="nextSlide()">&#8594;</button>
+        <div class="dashboard-links">
+            <a href="dashboard_dp01_react.html" target="_blank">DP01</a>
+            <a href="dashboard_dqm_react.html" class="dqm" target="_blank">DQM</a>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 8;
+
+        function showSlide(n) {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+            document.getElementById('current').textContent = n;
+            document.getElementById('prev-btn').disabled = n === 1;
+            document.getElementById('next-btn').disabled = n === totalSlides;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Touch navigation for mobile
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+        document.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextSlide();
+                else prevSlide();
+            }
+        });
+    </script>
+</body>
+</html>

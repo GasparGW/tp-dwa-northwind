@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQM - Control de Calidad | React + Supabase</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #525252;
+            --text-muted: #737373;
+            --border-color: #e5e5e5;
+            --accent-primary: #2563eb;
+            --accent-light: #dbeafe;
+            --positive: #16a34a;
+            --positive-light: #dcfce7;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --etapa-adquisicion: #7c3aed;
+            --etapa-ingenieria: #2563eb;
+            --etapa-actualizacion: #0891b2;
+            --etapa-publicacion: #059669;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--positive-light);
+            color: var(--positive);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--positive);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .kpi {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .kpi:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .kpi-value.success { color: var(--positive); }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .pipeline-stage {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pipeline-stage:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .pipeline-stage.active {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .pipeline-stage::after {
+            content: '→';
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+            z-index: 1;
+        }
+
+        .pipeline-stage:last-child::after { display: none; }
+
+        .pipeline-stage-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 0 auto 10px;
+            color: white;
+        }
+
+        .pipeline-stage.adquisicion .pipeline-stage-number { background: var(--etapa-adquisicion); }
+        .pipeline-stage.ingenieria .pipeline-stage-number { background: var(--etapa-ingenieria); }
+        .pipeline-stage.actualizacion .pipeline-stage-number { background: var(--etapa-actualizacion); }
+        .pipeline-stage.publicacion .pipeline-stage-number { background: var(--etapa-publicacion); }
+
+        .pipeline-stage-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .pipeline-stage-count {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            margin-bottom: -1px;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+
+        .tab:hover { color: var(--text-primary); }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .search-box {
+            margin-bottom: 16px;
+        }
+
+        .search-box input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover { background: var(--bg-primary); }
+
+        .filter-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .counter {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .text-mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-ok { background: var(--positive-light); color: var(--positive); }
+        .status-iniciado { background: var(--warning-light); color: #92400e; }
+        .status-error { background: #fef2f2; color: #dc2626; }
+
+        .etapa-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .etapa-adquisicion { background: #ede9fe; color: #5b21b6; }
+        .etapa-ingenieria { background: #dbeafe; color: #1e40af; }
+        .etapa-actualizacion { background: #cffafe; color: #0e7490; }
+        .etapa-publicacion { background: #d1fae5; color: #065f46; }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--positive);
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.iniciado { background: var(--warning); }
+
+        .timeline-content { flex: 1; }
+
+        .timeline-title {
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .architecture {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .arch-layer {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .arch-layer-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .arch-layer-count {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .arch-layer-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .refresh-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover { background: #1d4ed8; }
+
+        .last-update {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 1024px) {
+            .kpis { grid-template-columns: repeat(3, 1fr); }
+            .pipeline { grid-template-columns: repeat(2, 1fr); }
+            .grid-2 { grid-template-columns: 1fr; }
+            .architecture { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .kpis { grid-template-columns: repeat(2, 1fr); }
+            .architecture { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Supabase Config
+        const SUPABASE_URL = 'https://fyzwgzvfjmxbxcbvrsdg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5endnenZmam14YnhjYnZyc2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTc5NDcsImV4cCI6MjA3ODYzMzk0N30.m8MKH3Sx5Szm4JsQGbNO9yHUryQkekOfrlzFYg7wni4';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Main Dashboard Component
+        function Dashboard() {
+            const [inventario, setInventario] = React.useState([]);
+            const [log, setLog] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [lastUpdate, setLastUpdate] = React.useState(null);
+            const [activeTab, setActiveTab] = React.useState('inventario');
+            const [filterEtapa, setFilterEtapa] = React.useState('all');
+            const [filterEstado, setFilterEstado] = React.useState('all');
+            const [searchTerm, setSearchTerm] = React.useState('');
+
+            const fetchData = async () => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const [invRes, logRes] = await Promise.all([
+                        supabase.from('dqm_inventario_scripts').select('*').order('script_id'),
+                        supabase.from('dqm_log_ejecucion').select('*').order('fecha_inicio', { ascending: false })
+                    ]);
+                    
+                    if (invRes.error) throw invRes.error;
+                    if (logRes.error) throw logRes.error;
+                    
+                    setInventario(invRes.data);
+                    setLog(logRes.data);
+                    setLastUpdate(new Date());
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            React.useEffect(() => {
+                fetchData();
+            }, []);
+
+            if (loading) {
+                return (
+                    <div className="dashboard">
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            <p>Conectando a Supabase...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="dashboard">
+                        <div className="error">
+                            <strong>Error de conexión:</strong> {error}
+                            <br /><br />
+                            <button className="refresh-btn" onClick={fetchData}>
+                                🔄 Reintentar
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Calculate KPIs
+            const totalScripts = inventario.length;
+            const totalEjecuciones = log.length;
+            const okCount = log.filter(l => l.estado === 'OK').length;
+            const tasaExito = totalEjecuciones > 0 ? ((okCount / totalEjecuciones) * 100).toFixed(1) : 0;
+            const totalRegistros = log.reduce((sum, l) => sum + (parseInt(l.registros_afectados) || 0), 0);
+            
+            // Count by etapa
+            const etapas = {};
+            inventario.forEach(s => {
+                etapas[s.etapa] = (etapas[s.etapa] || 0) + 1;
+            });
+
+            // Filter inventario
+            const filteredInventario = inventario.filter(s => {
+                const matchEtapa = filterEtapa === 'all' || s.etapa === filterEtapa;
+                const matchSearch = searchTerm === '' || 
+                    s.script_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.nombre_archivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchEtapa && matchSearch;
+            });
+
+            // Filter log
+            const filteredLog = log.filter(l => {
+                return filterEstado === 'all' || l.estado === filterEstado;
+            });
+
+            // Get etapa class
+            const getEtapaClass = (etapa) => {
+                const map = {
+                    'Adquisición': 'adquisicion',
+                    'Ingeniería': 'ingenieria',
+                    'Actualización': 'actualizacion',
+                    'Publicación': 'publicacion'
+                };
+                return map[etapa] || 'adquisicion';
+            };
+
+            return (
+                <div className="dashboard">
+                    <header className="header">
+                        <div className="header-eyebrow">Introducción a Data Warehousing · Ingeniería de Datos</div>
+                        <h1>DQM · Control de Calidad de Datos</h1>
+                        <div className="header-subtitle">Dashboard en tiempo real conectado a Supabase</div>
+                        <div className="live-badge">
+                            <span className="live-dot"></span>
+                            LIVE · Datos desde PostgreSQL
+                        </div>
+                        {lastUpdate && (
+                            <div className="last-update">
+                                Última actualización: {lastUpdate.toLocaleTimeString('es-AR')}
+                            </div>
+                        )}
+                    </header>
+
+                    {/* KPIs */}
+                    <div className="kpis">
+                        <div className="kpi">
+                            <div className="kpi-value">{totalScripts}</div>
+                            <div className="kpi-label">Scripts</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">{totalEjecuciones}</div>
+                            <div className="kpi-label">Ejecuciones</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value success">{tasaExito}%</div>
+                            <div className="kpi-label">Tasa Éxito</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">{totalRegistros.toLocaleString()}</div>
+                            <div className="kpi-label">Registros</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value success">{okCount}</div>
+                            <div className="kpi-label">Exitosos</div>
+                        </div>
+                    </div>
+
+                    {/* Pipeline */}
+                    <div className="pipeline">
+                        {['Adquisición', 'Ingeniería', 'Actualización', 'Publicación'].map((etapa, i) => (
+                            <div 
+                                key={etapa}
+                                className={`pipeline-stage ${getEtapaClass(etapa)} ${filterEtapa === etapa ? 'active' : ''}`}
+                                onClick={() => {
+                                    setFilterEtapa(filterEtapa === etapa ? 'all' : etapa);
+                                    setActiveTab('inventario');
+                                }}
+                            >
+                                <div className="pipeline-stage-number">{i + 1}</div>
+                                <div className="pipeline-stage-name">{etapa}</div>
+                                <div className="pipeline-stage-count">{etapas[etapa] || 0} scripts</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="tabs">
+                        <button className={`tab ${activeTab === 'inventario' ? 'active' : ''}`} onClick={() => setActiveTab('inventario')}>
+                            📋 Inventario
+                        </button>
+                        <button className={`tab ${activeTab === 'ejecuciones' ? 'active' : ''}`} onClick={() => setActiveTab('ejecuciones')}>
+                            ⚡ Ejecuciones
+                        </button>
+                        <button className={`tab ${activeTab === 'arquitectura' ? 'active' : ''}`} onClick={() => setActiveTab('arquitectura')}>
+                            🏗️ Arquitectura
+                        </button>
+                    </div>
+
+                    {/* Tab: Inventario */}
+                    {activeTab === 'inventario' && (
+                        <div className="card">
+                            <div className="card-title">📋 Inventario de Scripts</div>
+                            
+                            <div className="search-box">
+                                <input 
+                                    type="text" 
+                                    placeholder="🔍 Buscar scripts..." 
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="filters">
+                                <button 
+                                    className={`filter-btn ${filterEtapa === 'all' ? 'active' : ''}`}
+                                    onClick={() => setFilterEtapa('all')}
+                                >
+                                    Todos
+                                </button>
+                                {['Adquisición', 'Ingeniería', 'Actualización', 'Publicación'].map(etapa => (
+                                    <button 
+                                        key={etapa}
+                                        className={`filter-btn ${filterEtapa === etapa ? 'active' : ''}`}
+                                        onClick={() => setFilterEtapa(etapa)}
+                                    >
+                                        {etapa}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="counter">
+                                Mostrando {filteredInventario.length} de {totalScripts} scripts
+                            </div>
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Archivo</th>
+                                        <th>Descripción</th>
+                                        <th>Etapa</th>
+                                        <th>Paso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredInventario.map(script => (
+                                        <tr key={script.script_id}>
+                                            <td className="text-mono">{script.script_id}</td>
+                                            <td className="text-mono">{script.nombre_archivo}</td>
+                                            <td>{script.descripcion}</td>
+                                            <td>
+                                                <span className={`etapa-badge etapa-${getEtapaClass(script.etapa)}`}>
+                                                    {script.etapa}
+                                                </span>
+                                            </td>
+                                            <td>{script.paso}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* Tab: Ejecuciones */}
+                    {activeTab === 'ejecuciones' && (
+                        <div className="grid-2">
+                            <div className="card">
+                                <div className="card-title">⚡ Log de Ejecuciones</div>
+
+                                <div className="filters">
+                                    <button 
+                                        className={`filter-btn ${filterEstado === 'all' ? 'active' : ''}`}
+                                        onClick={() => setFilterEstado('all')}
+                                    >
+                                        Todas
+                                    </button>
+                                    <button 
+                                        className={`filter-btn ${filterEstado === 'OK' ? 'active' : ''}`}
+                                        onClick={() => setFilterEstado('OK')}
+                                    >
+                                        ✓ OK
+                                    </button>
+                                    <button 
+                                        className={`filter-btn ${filterEstado === 'INICIADO' ? 'active' : ''}`}
+                                        onClick={() => setFilterEstado('INICIADO')}
+                                    >
+                                        ⏳ Iniciado
+                                    </button>
+                                </div>
+
+                                <div className="counter">
+                                    Mostrando {filteredLog.length} de {totalEjecuciones} ejecuciones
+                                </div>
+
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Script</th>
+                                            <th>Estado</th>
+                                            <th>Registros</th>
+                                            <th>Observaciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredLog.slice(0, 15).map((exec, i) => (
+                                            <tr key={i}>
+                                                <td className="text-mono">{exec.script_id}</td>
+                                                <td>
+                                                    <span className={`status-badge status-${exec.estado.toLowerCase()}`}>
+                                                        {exec.estado === 'OK' ? '✓' : '⏳'} {exec.estado}
+                                                    </span>
+                                                </td>
+                                                <td>{exec.registros_afectados || '-'}</td>
+                                                <td>{exec.observaciones}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="card">
+                                <div className="card-title">🕐 Timeline Reciente</div>
+                                <div className="timeline">
+                                    {log.slice(0, 8).map((exec, i) => (
+                                        <div className="timeline-item" key={i}>
+                                            <div className={`timeline-dot ${exec.estado === 'INICIADO' ? 'iniciado' : ''}`}></div>
+                                            <div className="timeline-content">
+                                                <div className="timeline-title">{exec.script_id}</div>
+                                                <div className="timeline-desc">{exec.observaciones}</div>
+                                            </div>
+                                            <div className="timeline-time">
+                                                {exec.fecha_inicio ? new Date(exec.fecha_inicio).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab: Arquitectura */}
+                    {activeTab === 'arquitectura' && (
+                        <>
+                            <div className="card">
+                                <div className="card-title">🏗️ Capas de la Arquitectura DWA</div>
+                                <div className="architecture">
+                                    {[
+                                        { name: 'TXT', count: 11, label: 'Staging Raw' },
+                                        { name: 'TMP', count: 11, label: 'Staging Typed' },
+                                        { name: 'DWM', count: 4, label: 'Memory (SCD2)' },
+                                        { name: 'DWA', count: 10, label: 'Dimensional' },
+                                        { name: 'DWE', count: 5, label: 'Enrichment' },
+                                        { name: 'MET', count: 5, label: 'Metadata' },
+                                        { name: 'DQM', count: 7, label: 'Quality' }
+                                    ].map(layer => (
+                                        <div className="arch-layer" key={layer.name}>
+                                            <div className="arch-layer-name">{layer.name}</div>
+                                            <div className="arch-layer-count">{layer.count}</div>
+                                            <div className="arch-layer-label">{layer.label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <div className="card-title">📊 Flujo de Datos</div>
+                                <div style={{textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '13px'}}>
+                                    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
+                                        <span style={{background: '#ede9fe', padding: '8px 14px', borderRadius: '8px'}}>CSV</span>
+                                        <span>→</span>
+                                        <span style={{background: '#fef3c7', padding: '8px 14px', borderRadius: '8px'}}>TXT</span>
+                                        <span>→</span>
+                                        <span style={{background: '#dbeafe', padding: '8px 14px', borderRadius: '8px'}}>TMP</span>
+                                        <span>→</span>
+                                        <span style={{background: '#d1fae5', padding: '8px 14px', borderRadius: '8px'}}>DWM</span>
+                                        <span>→</span>
+                                        <span style={{background: '#fee2e2', padding: '8px 14px', borderRadius: '8px'}}>DWA</span>
+                                        <span>→</span>
+                                        <span style={{background: '#e0f2fe', padding: '8px 14px', borderRadius: '8px'}}>DWE</span>
+                                        <span>→</span>
+                                        <span style={{background: '#dcfce7', padding: '8px 14px', borderRadius: '8px'}}>DP01</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    <footer className="footer">
+                        <div>
+                            <strong>TP DWA</strong> · React + Supabase · PostgreSQL 17.6
+                            <br />
+                            <span style={{fontSize: '11px'}}>Gaspar González Wulfsohn · Emilia Garmendia</span>
+                        </div>
+                        <div style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
+                            <a href="dashboard_dp01_react.html">← Ver Dashboard DP01</a>
+                            <button className="refresh-btn" onClick={fetchData}>
+                                🔄 Actualizar
+                            </button>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render
+        ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+    </script>
+</body>
+</html>

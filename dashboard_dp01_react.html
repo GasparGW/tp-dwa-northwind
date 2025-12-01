@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DP01 - Análisis de Mercados | React + Supabase</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #525252;
+            --text-muted: #737373;
+            --border-color: #e5e5e5;
+            --accent-primary: #2563eb;
+            --accent-light: #dbeafe;
+            --positive: #16a34a;
+            --positive-light: #dcfce7;
+            --segment-premium: #2563eb;
+            --segment-emergente: #059669;
+            --segment-medio: #0891b2;
+            --segment-medio-alto: #d97706;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-eyebrow {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--positive-light);
+            color: var(--positive);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--positive);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .kpi {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .kpi:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .segment-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .segment-card {
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .segment-card.premium { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+        .segment-card.emergente { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+        .segment-card.medio { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
+        .segment-card.medio-alto { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+
+        .segment-card-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .segment-card-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .segment-card-countries {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .text-right { text-align: right; }
+        .text-mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+        .segment-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .segment-premium { background: #dbeafe; color: #1e40af; }
+        .segment-emergente { background: #d1fae5; color: #065f46; }
+        .segment-medio { background: #e0f2fe; color: #0369a1; }
+        .segment-medio-alto { background: #fef3c7; color: #92400e; }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .refresh-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .last-update {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .kpis { grid-template-columns: repeat(3, 1fr); }
+            .grid-2 { grid-template-columns: 1fr; }
+            .segment-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .kpis { grid-template-columns: repeat(2, 1fr); }
+            .segment-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Supabase Config
+        const SUPABASE_URL = 'https://fyzwgzvfjmxbxcbvrsdg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5endnenZmam14YnhjYnZyc2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTc5NDcsImV4cCI6MjA3ODYzMzk0N30.m8MKH3Sx5Szm4JsQGbNO9yHUryQkekOfrlzFYg7wni4';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Utility functions
+        const formatCurrency = (value) => {
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value.toFixed(0)}`;
+        };
+
+        const formatNumber = (value) => value.toLocaleString('es-AR');
+
+        // Country flags mapping
+        const countryFlags = {
+            'United States': '🇺🇸', 'Germany': '🇩🇪', 'Austria': '🇦🇹', 'Brazil': '🇧🇷',
+            'France': '🇫🇷', 'United Kingdom': '🇬🇧', 'Venezuela': '🇻🇪', 'Sweden': '🇸🇪',
+            'Canada': '🇨🇦', 'Republic of Ireland': '🇮🇪', 'Denmark': '🇩🇰', 'Mexico': '🇲🇽',
+            'Switzerland': '🇨🇭', 'Belgium': '🇧🇪', 'Finland': '🇫🇮', 'Portugal': '🇵🇹',
+            'Spain': '🇪🇸', 'Italy': '🇮🇹', 'Norway': '🇳🇴', 'Poland': '🇵🇱', 'Argentina': '🇦🇷'
+        };
+
+        // Main Dashboard Component
+        function Dashboard() {
+            const [data, setData] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [lastUpdate, setLastUpdate] = React.useState(null);
+
+            const fetchData = async () => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const { data: mercados, error } = await supabase
+                        .from('dp01_analisis_mercados')
+                        .select('*');
+                    
+                    if (error) throw error;
+                    
+                    setData(mercados);
+                    setLastUpdate(new Date());
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            React.useEffect(() => {
+                fetchData();
+            }, []);
+
+            if (loading) {
+                return (
+                    <div className="dashboard">
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            <p>Conectando a Supabase...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="dashboard">
+                        <div className="error">
+                            <strong>Error de conexión:</strong> {error}
+                            <br /><br />
+                            <button className="refresh-btn" onClick={fetchData}>
+                                🔄 Reintentar
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Calculate KPIs
+            const totalRevenue = data.reduce((sum, r) => sum + parseFloat(r.total_revenue), 0);
+            const totalOrders = data.reduce((sum, r) => sum + parseInt(r.total_orders), 0);
+            const totalItems = data.reduce((sum, r) => sum + parseInt(r.total_items), 0);
+            const avgOrderValue = totalRevenue / totalOrders;
+            const uniqueCountries = [...new Set(data.map(r => r.country_name))];
+            const uniqueQuarters = [...new Set(data.map(r => `${r.year}-Q${r.quarter}`))];
+
+            // Revenue by country
+            const revenueByCountry = {};
+            const ordersByCountry = {};
+            data.forEach(r => {
+                revenueByCountry[r.country_name] = (revenueByCountry[r.country_name] || 0) + parseFloat(r.total_revenue);
+                ordersByCountry[r.country_name] = (ordersByCountry[r.country_name] || 0) + parseInt(r.total_orders);
+            });
+            const topCountries = Object.entries(revenueByCountry)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            // Revenue by segment
+            const revenueBySegment = {};
+            const countriesBySegment = {};
+            data.forEach(r => {
+                revenueBySegment[r.market_segment] = (revenueBySegment[r.market_segment] || 0) + parseFloat(r.total_revenue);
+                if (!countriesBySegment[r.market_segment]) countriesBySegment[r.market_segment] = new Set();
+                countriesBySegment[r.market_segment].add(r.country_name);
+            });
+
+            // Revenue by quarter
+            const revenueByQuarter = {};
+            data.forEach(r => {
+                const key = `${r.year}-Q${r.quarter}`;
+                revenueByQuarter[key] = (revenueByQuarter[key] || 0) + parseFloat(r.total_revenue);
+            });
+            const sortedQuarters = Object.keys(revenueByQuarter).sort();
+
+            // Get segment for country (most common)
+            const segmentByCountry = {};
+            data.forEach(r => {
+                if (!segmentByCountry[r.country_name]) segmentByCountry[r.country_name] = {};
+                segmentByCountry[r.country_name][r.market_segment] = 
+                    (segmentByCountry[r.country_name][r.market_segment] || 0) + 1;
+            });
+            Object.keys(segmentByCountry).forEach(country => {
+                const segments = segmentByCountry[country];
+                segmentByCountry[country] = Object.entries(segments).sort((a, b) => b[1] - a[1])[0][0];
+            });
+
+            return (
+                <div className="dashboard">
+                    <header className="header">
+                        <div className="header-eyebrow">Introducción a Data Warehousing · Ingeniería de Datos</div>
+                        <h1>DP01 · Análisis de Mercados Internacionales</h1>
+                        <div className="header-subtitle">Dashboard en tiempo real conectado a Supabase</div>
+                        <div className="live-badge">
+                            <span className="live-dot"></span>
+                            LIVE · Datos desde PostgreSQL
+                        </div>
+                        {lastUpdate && (
+                            <div className="last-update">
+                                Última actualización: {lastUpdate.toLocaleTimeString('es-AR')}
+                            </div>
+                        )}
+                    </header>
+
+                    {/* KPIs */}
+                    <div className="kpis">
+                        <div className="kpi">
+                            <div className="kpi-value">{formatCurrency(totalRevenue)}</div>
+                            <div className="kpi-label">Revenue Total</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">{formatNumber(totalOrders)}</div>
+                            <div className="kpi-label">Órdenes</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">${avgOrderValue.toFixed(0)}</div>
+                            <div className="kpi-label">Ticket Promedio</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">{uniqueCountries.length}</div>
+                            <div className="kpi-label">Países</div>
+                        </div>
+                        <div className="kpi">
+                            <div className="kpi-value">{uniqueQuarters.length}</div>
+                            <div className="kpi-label">Trimestres</div>
+                        </div>
+                    </div>
+
+                    {/* Segment Cards */}
+                    <div className="segment-cards">
+                        {['PREMIUM', 'EMERGENTE', 'MEDIO', 'MEDIO-ALTO'].map(seg => {
+                            const revenue = revenueBySegment[seg] || 0;
+                            const countries = countriesBySegment[seg]?.size || 0;
+                            const pct = ((revenue / totalRevenue) * 100).toFixed(1);
+                            const className = seg.toLowerCase().replace('-', '-');
+                            return (
+                                <div key={seg} className={`segment-card ${seg === 'PREMIUM' ? 'premium' : seg === 'EMERGENTE' ? 'emergente' : seg === 'MEDIO' ? 'medio' : 'medio-alto'}`}>
+                                    <div className="segment-card-value">{formatCurrency(revenue)}</div>
+                                    <div className="segment-card-label">{seg}</div>
+                                    <div className="segment-card-countries">{countries} países · {pct}%</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Charts and Tables */}
+                    <div className="grid-2">
+                        <div className="card">
+                            <div className="card-title">📊 Distribución por Segmento</div>
+                            <div className="chart-container">
+                                <SegmentChart data={revenueBySegment} />
+                            </div>
+                        </div>
+                        <div className="card">
+                            <div className="card-title">📈 Evolución Trimestral</div>
+                            <div className="chart-container">
+                                <QuarterChart quarters={sortedQuarters} data={revenueByQuarter} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid-2">
+                        <div className="card">
+                            <div className="card-title">🏆 Top 10 Países por Revenue</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>País</th>
+                                        <th>Segmento</th>
+                                        <th className="text-right">Revenue</th>
+                                        <th className="text-right">Órdenes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {topCountries.map(([country, revenue], i) => (
+                                        <tr key={country}>
+                                            <td>{i + 1}</td>
+                                            <td>{countryFlags[country] || '🌍'} {country}</td>
+                                            <td>
+                                                <span className={`segment-badge segment-${segmentByCountry[country]?.toLowerCase().replace('-', '-') || 'premium'}`}>
+                                                    {segmentByCountry[country]}
+                                                </span>
+                                            </td>
+                                            <td className="text-right text-mono">{formatCurrency(revenue)}</td>
+                                            <td className="text-right">{ordersByCountry[country]}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-title">🌍 Revenue por Trimestre</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Trimestre</th>
+                                        <th className="text-right">Revenue</th>
+                                        <th className="text-right">% del Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedQuarters.map(q => (
+                                        <tr key={q}>
+                                            <td className="text-mono">{q}</td>
+                                            <td className="text-right text-mono">{formatCurrency(revenueByQuarter[q])}</td>
+                                            <td className="text-right text-mono">{((revenueByQuarter[q] / totalRevenue) * 100).toFixed(1)}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <footer className="footer">
+                        <div>
+                            <strong>TP DWA</strong> · React + Supabase · PostgreSQL 17.6
+                            <br />
+                            <span style={{fontSize: '11px'}}>Gaspar González Wulfsohn · Emilia Garmendia</span>
+                        </div>
+                        <button className="refresh-btn" onClick={fetchData}>
+                            🔄 Actualizar Datos
+                        </button>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Segment Doughnut Chart
+        function SegmentChart({ data }) {
+            const canvasRef = React.useRef(null);
+            const chartRef = React.useRef(null);
+
+            React.useEffect(() => {
+                if (chartRef.current) chartRef.current.destroy();
+                
+                const ctx = canvasRef.current.getContext('2d');
+                chartRef.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: ['#2563eb', '#059669', '#0891b2', '#d97706'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 16, font: { family: 'IBM Plex Sans', size: 12 } }
+                            }
+                        }
+                    }
+                });
+
+                return () => chartRef.current?.destroy();
+            }, [data]);
+
+            return <canvas ref={canvasRef}></canvas>;
+        }
+
+        // Quarter Line Chart
+        function QuarterChart({ quarters, data }) {
+            const canvasRef = React.useRef(null);
+            const chartRef = React.useRef(null);
+
+            React.useEffect(() => {
+                if (chartRef.current) chartRef.current.destroy();
+                
+                const ctx = canvasRef.current.getContext('2d');
+                chartRef.current = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: quarters,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: quarters.map(q => data[q]),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#2563eb'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: (v) => '$' + (v / 1000).toFixed(0) + 'K',
+                                    font: { family: 'IBM Plex Sans', size: 11 }
+                                },
+                                grid: { color: '#f0f0f0' }
+                            },
+                            x: {
+                                ticks: { font: { family: 'IBM Plex Sans', size: 11 } },
+                                grid: { display: false }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                return () => chartRef.current?.destroy();
+            }, [quarters, data]);
+
+            return <canvas ref={canvasRef}></canvas>;
+        }
+
+        // Render
+        ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+    </script>
+</body>
+</html>
