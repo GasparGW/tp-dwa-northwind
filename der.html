@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DER - Data Warehouse Northwind</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #10b981;
+            --purple: #8b5cf6;
+            --orange: #f59e0b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: var(--card);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover { border-color: var(--accent); }
+        .tab.active { background: var(--accent); border-color: var(--accent); }
+        
+        .diagram-section {
+            display: none;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .diagram-section.active { display: block; }
+        
+        .diagram-section h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .diagram-section .desc {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        .mermaid {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .back-link:hover { text-decoration: underline; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge.blue { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .badge.green { background: rgba(16,185,129,0.2); color: #34d399; }
+        .badge.purple { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        .badge.orange { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Volver a presentacion</a>
+        
+        <h1>Diagramas del Data Warehouse</h1>
+        <p class="subtitle">TP Introduccion a Data Warehousing - Northwind - 2025</p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showDiagram('estrella')">Modelo Estrella</div>
+            <div class="tab" onclick="showDiagram('arquitectura')">Arquitectura</div>
+            <div class="tab" onclick="showDiagram('flujo')">Flujo de Datos</div>
+            <div class="tab" onclick="showDiagram('scd')">SCD Type 2</div>
+            <div class="tab" onclick="showDiagram('dqm')">DQM</div>
+        </div>
+        
+        <!-- Modelo Estrella -->
+        <div id="estrella" class="diagram-section active">
+            <h2>Modelo Dimensional - Esquema Estrella <span class="badge blue">DWA</span></h2>
+            <p class="desc">Fact table central (FACT_VENTAS) con 9 dimensiones conformadas</p>
+            <div class="mermaid">
+erDiagram
+    FACT_VENTAS {
+        int fact_venta_sk PK
+        int order_date_sk FK
+        int customer_sk FK
+        int employee_sk FK
+        int product_sk FK
+        int shipper_sk FK
+        int orderid
+        int quantity
+        numeric unit_price
+        numeric discount
+        numeric total_line
+    }
+    
+    DIM_TIME {
+        int time_sk PK
+        date full_date
+        int year
+        int quarter
+        int month
+        varchar month_name
+    }
+    
+    DIM_CUSTOMER {
+        int customer_sk PK
+        varchar customerid
+        varchar company_name
+        varchar country
+        boolean is_current
+        int version
+    }
+    
+    DIM_EMPLOYEE {
+        int employee_sk PK
+        int employeeid
+        varchar first_name
+        varchar last_name
+        varchar title
+    }
+    
+    DIM_PRODUCT {
+        int product_sk PK
+        int productid
+        varchar product_name
+        int category_sk FK
+        int supplier_sk FK
+        numeric unit_price
+    }
+    
+    DIM_CATEGORY {
+        int category_sk PK
+        varchar category_name
+    }
+    
+    DIM_SUPPLIER {
+        int supplier_sk PK
+        varchar company_name
+        int country_sk FK
+    }
+    
+    DIM_SHIPPER {
+        int shipper_sk PK
+        varchar company_name
+    }
+    
+    DIM_COUNTRY {
+        int country_sk PK
+        varchar country_name
+        bigint population
+        numeric gdp_per_capita
+    }
+
+    FACT_VENTAS ||--o{ DIM_TIME : "fecha"
+    FACT_VENTAS ||--o{ DIM_CUSTOMER : "cliente"
+    FACT_VENTAS ||--o{ DIM_EMPLOYEE : "vendedor"
+    FACT_VENTAS ||--o{ DIM_PRODUCT : "producto"
+    FACT_VENTAS ||--o{ DIM_SHIPPER : "envio"
+    DIM_PRODUCT ||--o{ DIM_CATEGORY : "categoria"
+    DIM_PRODUCT ||--o{ DIM_SUPPLIER : "proveedor"
+    DIM_SUPPLIER ||--o{ DIM_COUNTRY : "pais"
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#f87171"></div>Fact Table (metricas)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60a5fa"></div>Dimensiones (atributos)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#34d399"></div>Dimension con datos externos</div>
+            </div>
+        </div>
+        
+        <!-- Arquitectura -->
+        <div id="arquitectura" class="diagram-section">
+            <h2>Arquitectura de 7 Capas <span class="badge green">DWA</span></h2>
+            <p class="desc">Flujo completo desde ingesta CSV hasta productos de datos y dashboards</p>
+            <div class="mermaid">
+flowchart LR
+    subgraph INGESTA["INGESTA"]
+        CSV[("CSV\n11 archivos\n3,311 filas")]
+    end
+    
+    subgraph STAGING["STAGING"]
+        TXT[("TXT\n11 tablas\nraw TEXT")]
+        TMP[("TMP\n11 tablas\ntipadas+PK")]
+    end
+    
+    subgraph CORE["CORE"]
+        DWM[("DWM\n4 tablas\nSCD Type 2")]
+        DWA[("DWA\n1 fact\n9 dims")]
+        DWE[("DWE\n5 tablas\nagregadas")]
+    end
+    
+    subgraph GOV["GOBIERNO"]
+        MET[("MET\n6 tablas\n306 attrs")]
+        DQM[("DQM\n7 tablas\n100%")]
+    end
+    
+    subgraph PUB["PUBLICACION"]
+        DP01[("DP01\nMercados")]
+        TAB["Dashboards\nReact"]
+    end
+    
+    CSV --> TXT --> TMP --> DWM --> DWA --> DWE --> DP01 --> TAB
+    DQM --> TAB
+            </div>
+        </div>
+        
+        <!-- Flujo de Datos -->
+        <div id="flujo" class="diagram-section">
+            <h2>Flujo de Datos por Etapas <span class="badge purple">PROCESO</span></h2>
+            <p class="desc">27 scripts organizados en 4 etapas del proyecto</p>
+            <div class="mermaid">
+flowchart TB
+    subgraph E1["ETAPA 1: ADQUISICION"]
+        direction LR
+        A0[Scripts 01-10]:::info
+        A1[Analisis CSVs] --> A2[Crear TXT]
+        A2 --> A3[Crear TMP]
+        A3 --> A4[Perfilado]
+        A4 --> A5[Validar FKs]
+    end
+    
+    subgraph E2["ETAPA 2: INGENIERIA"]
+        direction LR
+        B0[Scripts 12-17]:::info
+        B1[Crear MET] --> B2[Modelo Dimensional]
+        B2 --> B3[Crear DQM]
+        B3 --> B4[Carga Inicial]
+    end
+    
+    subgraph E3["ETAPA 3: ACTUALIZACION"]
+        direction LR
+        C0[Scripts 18-24]:::info
+        C1[World-Data-2023] --> C2[Ingesta 2]
+        C2 --> C3[SCD Type 2]
+        C3 --> C4[Actualizar DWE]
+    end
+    
+    subgraph E4["ETAPA 4: PUBLICACION"]
+        direction LR
+        D0[Scripts 25-27]:::info
+        D1[Crear DP01] --> D2[Dashboard DP01]
+        D2 --> D3[Dashboard DQM]
+    end
+    
+    E1 --> E2 --> E3 --> E4
+    
+    classDef info fill:#e0e7ff,stroke:#6366f1,color:#4338ca,font-size:11px
+            </div>
+        </div>
+        
+        <!-- SCD Type 2 -->
+        <div id="scd" class="diagram-section">
+            <h2>Slowly Changing Dimension Type 2 <span class="badge orange">DWM</span></h2>
+            <p class="desc">Historial de cambios con valid_from, valid_to, is_current y version</p>
+            <div class="mermaid">
+erDiagram
+    DWM_CUSTOMER {
+        int customer_sk PK "Surrogate Key"
+        varchar customerid "Business Key"
+        varchar company_name "Atributo tipo 2"
+        varchar contact_name "Atributo tipo 2"
+        varchar city "Atributo tipo 2"
+        varchar country "Atributo tipo 2"
+        timestamp valid_from "Inicio vigencia"
+        timestamp valid_to "Fin vigencia NULL=actual"
+        boolean is_current "TRUE = version actual"
+        int version "1 2 3..."
+    }
+    
+    DWM_PRODUCT {
+        int product_sk PK "Surrogate Key"
+        int productid "Business Key"
+        varchar product_name "Atributo tipo 2"
+        numeric unit_price "Atributo tipo 2"
+        int units_in_stock "Atributo tipo 2"
+        boolean discontinued "Atributo tipo 2"
+        timestamp valid_from
+        timestamp valid_to
+        boolean is_current
+        int version
+    }
+    
+    DWM_EMPLOYEE {
+        int employee_sk PK
+        int employeeid
+        varchar title "Atributo tipo 2"
+        timestamp valid_from
+        timestamp valid_to
+        boolean is_current
+        int version
+    }
+    
+    DWM_COUNTRY {
+        int country_sk PK
+        varchar country_name
+        bigint population "Atributo tipo 2"
+        numeric gdp "Atributo tipo 2"
+        timestamp valid_from
+        timestamp valid_to
+        boolean is_current
+        int version
+    }
+            </div>
+        </div>
+        
+        <!-- DQM -->
+        <div id="dqm" class="diagram-section">
+            <h2>Data Quality Mart <span class="badge green">DQM</span></h2>
+            <p class="desc">7 tablas para gestion de calidad, trazabilidad y control de procesos</p>
+            <div class="mermaid">
+erDiagram
+    DQM_PROCESO_CARGA {
+        int proceso_id PK
+        varchar nombre_proceso
+        timestamp fecha_inicio
+        timestamp fecha_fin
+        varchar estado
+        int registros_procesados
+    }
+    
+    DQM_CARGA_ENTIDAD {
+        int carga_id PK
+        int proceso_id FK
+        varchar entidad
+        int registros_origen
+        int registros_destino
+        numeric indice_calidad
+    }
+    
+    DQM_INVENTARIO_SCRIPTS {
+        varchar script_id PK
+        varchar nombre_archivo
+        varchar etapa
+        varchar paso
+        timestamp fecha_creacion
+    }
+    
+    DQM_LOG_EJECUCION {
+        int log_id PK
+        varchar script_id FK
+        timestamp fecha_inicio
+        varchar estado
+        text observaciones
+    }
+    
+    DQM_SCD_TRACKING {
+        int tracking_id PK
+        varchar entidad
+        varchar business_key
+        varchar campo_modificado
+        timestamp fecha_cambio
+    }
+    
+    DQM_ALERTA {
+        int alerta_id PK
+        varchar severidad
+        varchar entidad
+        text mensaje
+        boolean resuelta
+    }
+    
+    DQM_RECONCILIACION {
+        int rec_id PK
+        varchar capa_origen
+        varchar capa_destino
+        int registros_origen
+        int registros_destino
+        numeric diferencia_pct
+    }
+
+    DQM_PROCESO_CARGA ||--o{ DQM_CARGA_ENTIDAD : tiene
+    DQM_INVENTARIO_SCRIPTS ||--o{ DQM_LOG_EJECUCION : registra
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'default',
+            er: { useMaxWidth: true },
+            flowchart: { useMaxWidth: true, curve: 'basis' }
+        });
+        
+        async function renderDiagram(container) {
+            const mermaidDiv = container.querySelector('.mermaid');
+            if (mermaidDiv && !mermaidDiv.dataset.rendered) {
+                const code = mermaidDiv.textContent;
+                const { svg } = await mermaid.render('mermaid-' + Math.random().toString(36).substr(2, 9), code);
+                mermaidDiv.innerHTML = svg;
+                mermaidDiv.dataset.rendered = 'true';
+            }
+        }
+        
+        async function showDiagram(id) {
+            document.querySelectorAll('.diagram-section').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            const section = document.getElementById(id);
+            section.classList.add('active');
+            event.target.classList.add('active');
+            
+            await renderDiagram(section);
+        }
+        
+        // Render first diagram on load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDiagram(document.getElementById('estrella'));
+        });
+    </script>
+</body>
+</html>
