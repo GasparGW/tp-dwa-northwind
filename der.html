@@ -155,6 +155,7 @@
             <div class="tab" onclick="showDiagram('flujo')">Flujo de Datos</div>
             <div class="tab" onclick="showDiagram('scd')">SCD Type 2</div>
             <div class="tab" onclick="showDiagram('dwe')">DWE</div>
+            <div class="tab" onclick="showDiagram('met')">MET</div>
             <div class="tab" onclick="showDiagram('dqm')">DQM</div>
         </div>
         
@@ -460,6 +461,79 @@ erDiagram
                 <div class="legend-item"><div class="legend-color" style="background:#22d3ee"></div>Tablas pre-agregadas</div>
                 <div class="legend-item"><div class="legend-color" style="background:#a5f3fc"></div>Metricas calculadas</div>
                 <div class="legend-item"><div class="legend-color" style="background:#0891b2"></div>Se recalculan post-ingesta</div>
+            </div>
+        </div>
+        
+        <!-- MET - METADATA -->
+        <div id="met" class="diagram-section">
+            <h2>Metadata - Documentación del DWA <span class="badge purple">MET</span></h2>
+            <p class="desc">6 tablas con 306 atributos documentados: catálogos, linaje, reglas y glosario</p>
+            <div class="mermaid">
+erDiagram
+    MET_CATALOGO_TABLAS {
+        int tabla_id PK
+        varchar nombre_tabla "ej: dwa_fact_ventas"
+        varchar capa "TXT TMP DWM DWA DWE DP01"
+        varchar tipo "FACT DIMENSION STAGING"
+        text descripcion
+        int cantidad_registros
+        timestamp fecha_actualizacion
+    }
+    
+    MET_CATALOGO_ATRIBUTOS {
+        int atributo_id PK
+        int tabla_id FK
+        varchar nombre_atributo "ej: customer_sk"
+        varchar tipo_dato "INTEGER VARCHAR NUMERIC"
+        boolean es_pk
+        boolean es_fk
+        boolean es_nullable
+        text descripcion "Documentacion del campo"
+        varchar ejemplo "ej: ALFKI"
+    }
+    
+    MET_LINAJE {
+        int linaje_id PK
+        varchar tabla_destino "ej: dwa_fact_ventas"
+        varchar atributo_destino "ej: total_line"
+        varchar tabla_origen "ej: order_details"
+        varchar atributo_origen "ej: quantity unitprice"
+        text transformacion "qty * price * (1-disc)"
+        varchar tipo "DIRECTO CALCULADO LOOKUP"
+    }
+    
+    MET_REGLAS_NEGOCIO {
+        int regla_id PK
+        varchar nombre_regla "ej: discount_rango"
+        varchar tabla_aplicable
+        varchar atributo_aplicable
+        varchar tipo_regla "FORMATO RANGO FK UNICO"
+        text expresion "BETWEEN 0 AND 1"
+        varchar severidad "ERROR WARNING INFO"
+    }
+    
+    MET_GLOSARIO {
+        int termino_id PK
+        varchar termino "ej: Surrogate Key"
+        text definicion
+        text sinonimos
+        varchar area_negocio "Tecnico Ventas Mercados"
+    }
+    
+    MET_DICCIONARIO_DATOS {
+        varchar view "Vista consolidada"
+        varchar une_tablas_atributos_linaje
+        varchar para_consulta_rapida
+    }
+
+    MET_CATALOGO_TABLAS ||--o{ MET_CATALOGO_ATRIBUTOS : contiene
+    MET_CATALOGO_ATRIBUTOS ||--o| MET_LINAJE : origen
+    MET_CATALOGO_ATRIBUTOS ||--o| MET_REGLAS_NEGOCIO : valida
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#a78bfa"></div>Catálogos (tablas y atributos)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#c4b5fd"></div>Trazabilidad (linaje de datos)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div>Gobernanza (reglas y glosario)</div>
             </div>
         </div>
         
