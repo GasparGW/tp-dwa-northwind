@@ -566,22 +566,26 @@
                         <p style="color: #22c55e;">Producto</p>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
                     <div class="card">
-                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">STAGING (TXT + TMP)</h4>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">11 tablas raw (TEXT) + 11 tipadas con PKs. Validación de campos, perfilado y control de FKs.</p>
+                        <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">STAGING (TXT + TMP)</h4>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">11 tablas raw (TEXT) + 11 tipadas con PKs. Validación y perfilado.</p>
                     </div>
                     <div class="card">
-                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">MEMORY (DWM)</h4>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">SCD Type 2 para Customers, Products, Employees, Countries. Historial con valid_from/to.</p>
+                        <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">MEMORY (DWM)</h4>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">SCD Type 2 para Customers, Products, Employees, Countries.</p>
                     </div>
                     <div class="card">
-                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">DIMENSIONAL (DWA)</h4>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">1 fact table (ventas) + 9 dimensiones. Modelo estrella optimizado para análisis OLAP.</p>
+                        <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">DIMENSIONAL (DWA)</h4>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">1 fact table + 9 dimensiones. Modelo estrella para OLAP.</p>
+                    </div>
+                    <div class="card" style="border-left: 3px solid var(--cyan);">
+                        <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--cyan);">ENRICHMENT (DWE)</h4>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">5 tablas pre-agregadas: ventas por país, mes, categoría, empleados.</p>
                     </div>
                     <div class="card">
-                        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px;">METADATA + CALIDAD</h4>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">6 tablas MET (306 atributos) + 7 tablas DQM para control de procesos y trazabilidad.</p>
+                        <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">METADATA + CALIDAD</h4>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">6 tablas MET (306 attrs) + 7 tablas DQM. Trazabilidad 100%.</p>
                     </div>
                 </div>
             </div>

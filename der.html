@@ -16,6 +16,7 @@
             --green: #10b981;
             --purple: #8b5cf6;
             --orange: #f59e0b;
+            --cyan: #0891b2;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -138,6 +139,7 @@
         .badge.green { background: rgba(16,185,129,0.2); color: #34d399; }
         .badge.purple { background: rgba(139,92,246,0.2); color: #a78bfa; }
         .badge.orange { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .badge.cyan { background: rgba(8,145,178,0.2); color: #22d3ee; }
     </style>
 </head>
 <body>
@@ -152,6 +154,7 @@
             <div class="tab" onclick="showDiagram('arquitectura')">Arquitectura</div>
             <div class="tab" onclick="showDiagram('flujo')">Flujo de Datos</div>
             <div class="tab" onclick="showDiagram('scd')">SCD Type 2</div>
+            <div class="tab" onclick="showDiagram('dwe')">DWE</div>
             <div class="tab" onclick="showDiagram('dqm')">DQM</div>
         </div>
         
@@ -381,6 +384,82 @@ erDiagram
         boolean is_current
         int version
     }
+            </div>
+        </div>
+        
+        <!-- DWE - NUEVO -->
+        <div id="dwe" class="diagram-section">
+            <h2>Data Warehouse Enrichment <span class="badge cyan">DWE</span></h2>
+            <p class="desc">5 tablas con datos derivados y agregaciones pre-calculadas para dashboards</p>
+            <div class="mermaid">
+erDiagram
+    DWE_VENTAS_POR_PAIS {
+        int country_sk PK
+        varchar country_name
+        numeric total_ventas "SUM total_line"
+        int cantidad_ordenes "COUNT DISTINCT orderid"
+        int cantidad_clientes "COUNT DISTINCT customer"
+        numeric ticket_promedio "AVG por orden"
+        bigint population "De DIM_COUNTRY"
+        numeric gdp_per_capita "De DIM_COUNTRY"
+        numeric ventas_per_capita "Calculado"
+        timestamp fecha_calculo
+    }
+    
+    DWE_VENTAS_POR_MES {
+        int anio
+        int mes
+        varchar mes_nombre
+        numeric total_ventas "SUM total_line"
+        int cantidad_ordenes "COUNT DISTINCT"
+        int productos_vendidos "SUM quantity"
+        int clientes_activos "COUNT DISTINCT"
+        numeric ticket_promedio
+        numeric ventas_mes_anterior "LAG window"
+        numeric variacion_pct "Cambio porcentual"
+        timestamp fecha_calculo
+    }
+    
+    DWE_VENTAS_POR_CATEGORIA {
+        int category_sk PK
+        varchar category_name
+        numeric total_ventas "SUM total_line"
+        int cantidad_productos "COUNT DISTINCT"
+        int unidades_vendidas "SUM quantity"
+        numeric precio_promedio "AVG unit_price"
+        numeric porcentaje_total "Del total ventas"
+        timestamp fecha_calculo
+    }
+    
+    DWE_PERFORMANCE_EMPLEADOS {
+        int employee_sk PK
+        varchar employee_name
+        numeric total_ventas "SUM total_line"
+        int cantidad_ordenes "COUNT DISTINCT"
+        int clientes_atendidos "COUNT DISTINCT"
+        numeric ticket_promedio
+        int ranking "RANK por ventas"
+        numeric porcentaje_total "Del total ventas"
+        timestamp fecha_calculo
+    }
+    
+    DWE_METRICAS_CUSTOMER {
+        int customer_sk PK
+        varchar company_name
+        numeric total_compras "SUM total_line"
+        int cantidad_ordenes "Frecuencia"
+        date primera_compra
+        date ultima_compra "Recencia"
+        int dias_desde_ultima
+        numeric ticket_promedio
+        varchar segmento_rfm "Alto Medio Bajo"
+        timestamp fecha_calculo
+    }
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#22d3ee"></div>Tablas pre-agregadas</div>
+                <div class="legend-item"><div class="legend-color" style="background:#a5f3fc"></div>Metricas calculadas</div>
+                <div class="legend-item"><div class="legend-color" style="background:#0891b2"></div>Se recalculan post-ingesta</div>
             </div>
         </div>
         
