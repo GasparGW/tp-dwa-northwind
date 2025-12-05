@@ -516,6 +516,92 @@
 
         .footer a:hover { text-decoration: underline; }
 
+        /* Alert styles */
+        .alert-count {
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+
+        .severity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .severity-error { background: #fef2f2; color: #dc2626; }
+        .severity-warning { background: #fef3c7; color: #d97706; }
+        .severity-info { background: #dbeafe; color: #2563eb; }
+
+        .status-pendiente { background: #fef3c7; color: #d97706; }
+        .status-resuelta { background: #dcfce7; color: #16a34a; }
+
+        .alert-summary {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .alert-stat {
+            background: var(--bg-primary);
+            padding: 16px 24px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+            border: 1px solid var(--border-color);
+        }
+
+        .alert-stat-value {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .alert-stat-label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .alert-stat.error .alert-stat-value { color: #dc2626; }
+        .alert-stat.warning .alert-stat-value { color: #d97706; }
+        .alert-stat.info .alert-stat-value { color: #2563eb; }
+        .alert-stat.pending .alert-stat-value { color: #d97706; }
+        .alert-stat.resolved .alert-stat-value { color: #16a34a; }
+
+        .no-alerts {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-alerts-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .no-alerts-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .no-alerts-subtext {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
         @media (max-width: 1024px) {
             .kpis { grid-template-columns: repeat(3, 1fr); }
             .pipeline { grid-template-columns: repeat(2, 1fr); }
@@ -543,12 +629,15 @@
         function Dashboard() {
             const [inventario, setInventario] = React.useState([]);
             const [log, setLog] = React.useState([]);
+            const [alertas, setAlertas] = React.useState([]);
             const [loading, setLoading] = React.useState(true);
             const [error, setError] = React.useState(null);
             const [lastUpdate, setLastUpdate] = React.useState(null);
             const [activeTab, setActiveTab] = React.useState('inventario');
             const [filterEtapa, setFilterEtapa] = React.useState('all');
             const [filterEstado, setFilterEstado] = React.useState('all');
+            const [filterSeveridad, setFilterSeveridad] = React.useState('all');
+            const [filterAlertaEstado, setFilterAlertaEstado] = React.useState('all');
             const [searchTerm, setSearchTerm] = React.useState('');
 
             const fetchData = async () => {
@@ -556,16 +645,20 @@
                 setError(null);
                 
                 try {
-                    const [invRes, logRes] = await Promise.all([
+                    const [invRes, logRes, alertRes] = await Promise.all([
                         supabase.from('dqm_inventario_scripts').select('*').order('script_id'),
-                        supabase.from('dqm_log_ejecucion').select('*').order('fecha_inicio', { ascending: false })
+                        supabase.from('dqm_log_ejecucion').select('*').order('fecha_inicio', { ascending: false }),
+                        supabase.from('dqm_alerta').select('*').order('fecha', { ascending: false })
                     ]);
                     
                     if (invRes.error) throw invRes.error;
                     if (logRes.error) throw logRes.error;
+                    // Si no existe la tabla de alertas, usar array vacío
+                    const alertasData = alertRes.error ? [] : alertRes.data;
                     
                     setInventario(invRes.data);
                     setLog(logRes.data);
+                    setAlertas(alertasData);
                     setLastUpdate(new Date());
                 } catch (err) {
                     setError(err.message);
@@ -708,6 +801,10 @@
                         </button>
                         <button className={`tab ${activeTab === 'ejecuciones' ? 'active' : ''}`} onClick={() => setActiveTab('ejecuciones')}>
                             ⚡ Ejecuciones
+                        </button>
+                        <button className={`tab ${activeTab === 'alertas' ? 'active' : ''}`} onClick={() => setActiveTab('alertas')}>
+                            🚨 Alertas {alertas.filter(a => a.estado === 'PENDIENTE').length > 0 && 
+                                <span className="alert-count">{alertas.filter(a => a.estado === 'PENDIENTE').length}</span>}
                         </button>
                         <button className={`tab ${activeTab === 'arquitectura' ? 'active' : ''}`} onClick={() => setActiveTab('arquitectura')}>
                             🏗️ Arquitectura
@@ -853,6 +950,143 @@
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Tab: Alertas */}
+                    {activeTab === 'alertas' && (
+                        <div className="card">
+                            <div className="card-title">🚨 Alertas del Sistema</div>
+                            
+                            <div className="filters">
+                                <span style={{fontSize: '12px', color: 'var(--text-muted)', marginRight: '8px'}}>Severidad:</span>
+                                <button 
+                                    className={`filter-btn ${filterSeveridad === 'all' ? 'active' : ''}`}
+                                    onClick={() => setFilterSeveridad('all')}
+                                >
+                                    Todas
+                                </button>
+                                <button 
+                                    className={`filter-btn ${filterSeveridad === 'ERROR' ? 'active' : ''}`}
+                                    onClick={() => setFilterSeveridad('ERROR')}
+                                >
+                                    🔴 Error
+                                </button>
+                                <button 
+                                    className={`filter-btn ${filterSeveridad === 'WARNING' ? 'active' : ''}`}
+                                    onClick={() => setFilterSeveridad('WARNING')}
+                                >
+                                    🟡 Warning
+                                </button>
+                                <button 
+                                    className={`filter-btn ${filterSeveridad === 'INFO' ? 'active' : ''}`}
+                                    onClick={() => setFilterSeveridad('INFO')}
+                                >
+                                    🔵 Info
+                                </button>
+                            </div>
+
+                            <div className="filters" style={{marginTop: '8px'}}>
+                                <span style={{fontSize: '12px', color: 'var(--text-muted)', marginRight: '8px'}}>Estado:</span>
+                                <button 
+                                    className={`filter-btn ${filterAlertaEstado === 'all' ? 'active' : ''}`}
+                                    onClick={() => setFilterAlertaEstado('all')}
+                                >
+                                    Todas
+                                </button>
+                                <button 
+                                    className={`filter-btn ${filterAlertaEstado === 'PENDIENTE' ? 'active' : ''}`}
+                                    onClick={() => setFilterAlertaEstado('PENDIENTE')}
+                                >
+                                    ⏳ Pendientes
+                                </button>
+                                <button 
+                                    className={`filter-btn ${filterAlertaEstado === 'RESUELTA' ? 'active' : ''}`}
+                                    onClick={() => setFilterAlertaEstado('RESUELTA')}
+                                >
+                                    ✅ Resueltas
+                                </button>
+                            </div>
+
+                            {alertas.length === 0 ? (
+                                <div className="no-alerts">
+                                    <div className="no-alerts-icon">✅</div>
+                                    <div className="no-alerts-text">No hay alertas registradas</div>
+                                    <div className="no-alerts-subtext">El sistema está funcionando correctamente</div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="alert-summary">
+                                        <div className="alert-stat error">
+                                            <span className="alert-stat-value">{alertas.filter(a => a.severidad === 'ERROR').length}</span>
+                                            <span className="alert-stat-label">Errores</span>
+                                        </div>
+                                        <div className="alert-stat warning">
+                                            <span className="alert-stat-value">{alertas.filter(a => a.severidad === 'WARNING').length}</span>
+                                            <span className="alert-stat-label">Warnings</span>
+                                        </div>
+                                        <div className="alert-stat info">
+                                            <span className="alert-stat-value">{alertas.filter(a => a.severidad === 'INFO').length}</span>
+                                            <span className="alert-stat-label">Info</span>
+                                        </div>
+                                        <div className="alert-stat pending">
+                                            <span className="alert-stat-value">{alertas.filter(a => a.estado === 'PENDIENTE').length}</span>
+                                            <span className="alert-stat-label">Pendientes</span>
+                                        </div>
+                                        <div className="alert-stat resolved">
+                                            <span className="alert-stat-value">{alertas.filter(a => a.estado === 'RESUELTA').length}</span>
+                                            <span className="alert-stat-label">Resueltas</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="counter">
+                                        Mostrando {alertas.filter(a => 
+                                            (filterSeveridad === 'all' || a.severidad === filterSeveridad) &&
+                                            (filterAlertaEstado === 'all' || a.estado === filterAlertaEstado)
+                                        ).length} de {alertas.length} alertas
+                                    </div>
+
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Severidad</th>
+                                                <th>Entidad</th>
+                                                <th>Campo</th>
+                                                <th>Valor</th>
+                                                <th>Mensaje</th>
+                                                <th>Estado</th>
+                                                <th>Resolución</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {alertas
+                                                .filter(a => 
+                                                    (filterSeveridad === 'all' || a.severidad === filterSeveridad) &&
+                                                    (filterAlertaEstado === 'all' || a.estado === filterAlertaEstado)
+                                                )
+                                                .map((alerta, i) => (
+                                                <tr key={alerta.alerta_id || i}>
+                                                    <td>
+                                                        <span className={`severity-badge severity-${alerta.severidad?.toLowerCase()}`}>
+                                                            {alerta.severidad === 'ERROR' ? '🔴' : alerta.severidad === 'WARNING' ? '🟡' : '🔵'} {alerta.severidad}
+                                                        </span>
+                                                    </td>
+                                                    <td className="text-mono">{alerta.entidad || '-'}</td>
+                                                    <td className="text-mono">{alerta.campo || '-'}</td>
+                                                    <td className="text-mono">{alerta.valor_obtenido || '-'}</td>
+                                                    <td>{alerta.mensaje}</td>
+                                                    <td>
+                                                        <span className={`status-badge status-${alerta.estado?.toLowerCase()}`}>
+                                                            {alerta.estado === 'RESUELTA' ? '✅' : '⏳'} {alerta.estado}
+                                                        </span>
+                                                    </td>
+                                                    <td>{alerta.resolucion || '-'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </>
+                            )}
                         </div>
                     )}
 
